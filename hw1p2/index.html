@@ -7,11 +7,12 @@
 </head>
 <body>
 	<h1>W209: Homework 1, Part 2</h1>
-	<h2>Mohammad's Coffee Intake and Hours of Sleep</h2>
+	<h2>Mohammad's Sleep and Coffee Intake</h2>
+
 	<div id="sleepHistDiv">
     	<strong>Hours of Sleep Histrogram</strong>
 		<span class="reset" style="display: none;">Selected: <span class="filter"></span></span>
-		<a class="reset" href="javascript:carTypeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+		<a class="reset" href="javascript:coffeeSleepTimeSeries.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 		<div class="clearfix"></div>
 	</div>
 
@@ -20,7 +21,7 @@
 		<span class="reset" style="display: none;">Selected:
 			<span class="filter"></span>
 		</span>
-		<a class="reset" href="javascript:carTypeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+		<a class="reset" href="javascript:coffeeSleepTimeSeries.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 		<div class="clearfix"></div>
 	</div>
 
@@ -29,7 +30,7 @@
 		<span class="reset" style="display: none;">Selected:
 			<span class="filter"></span>
 		</span>
-		<a class="reset" href="javascript:carTypeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+		<a class="reset" href="javascript:coffeeSleepTimeSeries.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 		<div class="clearfix"></div>
 	</div>
 
@@ -38,7 +39,7 @@
 		<span class="reset" style="display: none;">Selected:
 			<span class="filter"></span>
 		</span>
-		<a class="reset" href="javascript:carTypeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+		<a class="reset" href="javascript:coffeeSleepTimeSeries.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 		<div class="clearfix"></div>
 	</div>
 
@@ -51,8 +52,17 @@
     </div>
 	
 	<table class="table table-hover dc-data-table">
-    </table>
-
+	</table>
+	
+	<div>
+		<p>
+			These charts show the number of hours I "sleep" at night, and the number of cups of coffee I drink the next morning. Hours
+			of "sleep", and cups of coffee are plotted on the y-axis, and the date is plotted on the x-axis. In the timeseries chart, the blue line represents
+			the hours of "sleep" and the red line represents the cups of coffee. You can see that the less "sleep" I have at night,
+			the more coffee I drink in the morning. The more coffee I drink in the morning, the less I "sleep" the next night. It's a
+			vicious circle.
+		</p>
+	</div>
 
 	<script src="crossfilter.js"></script>
 	<script src="d3.js"></script>
@@ -69,6 +79,8 @@
 
 		var url = "sleep.tsv";
 
+		var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 		d3.tsv(url, function (err, data) {
 			// date	coffee	sleep
 			// 2018,02,17	5	8
@@ -77,17 +89,14 @@
 			
 			// convert date string to a date object
 			data.forEach(function (d) {
-				d.sleep = +d["sleep"];
-				d.coffee = +d["coffee"];
-				d.date = new Date(d["date"]);
-				d.day = d["date"].getDay();
-				// console.log(d.day);
+				d.sleep = +d.sleep;
+				d.coffee = +d.coffee;
+				d.date = new Date(d.date);
+				d.day = days[d.date.getDay()];
 			});
 
 			var ndx = crossfilter(data); 
 			var all = ndx.groupAll();			
-
-
 
 			var sleepDimension = ndx.dimension(function(d) {return +d.sleep;});
 			var sleepGroup = sleepDimension.group();
@@ -114,6 +123,7 @@
 				.group(coffeeGroup)
 				.x(d3.scale.linear().domain([0, 7]))
 				.elasticY(true)
+				.ordinalColors(["red"])
 				.xAxis().tickFormat();
 			
 			coffeeSleepScatter
@@ -125,9 +135,9 @@
 				.group(scatterGroup);
 
 			coffeeSleepTimeSeries
-				.width(600)
+				.width(960)
 				.transitionDuration(500)
-				.mouseZoomable(true)
+				.mouseZoomable(false)
 				.dimension(daysDim)
 				.x(d3.time.scale().domain([new Date(2018, 01, 01), new Date(2018, 02, 28)]))
 				.elasticY(true)
@@ -161,11 +171,12 @@
 				.dimension(daysDim)
 				.group(function (d) {
             var format = d3.format('02d');
-            return d.date.getDay();
+            return d.day;
         }).columns([
 					"date",
 					"coffee",
-					"sleep"
+					"sleep", 
+					"day"
 					]);
 			dc.renderAll();
 		});
