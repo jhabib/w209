@@ -5,9 +5,24 @@
 	<title>W209: Homework 1, Part 2</title>
 	<link rel="stylesheet" href="dc.css">
 </head>
+<a href="./d3_simple.html">Click here for Pure d3 Chart</a>
 <body>
 	<h1>W209: Homework 1, Part 2</h1>
 	<h2>Mohammad's Sleep and Coffee Intake</h2>
+	<div>
+		<p>
+			These charts show the number of hours I "sleep" at night, and the number of cups of coffee I drink the next morning. Hours
+			of "sleep", and cups of coffee are plotted on the y-axis, and the date is plotted on the x-axis. In the timeseries chart,
+			the blue line represents the hours of "sleep" and the red line represents the cups of coffee. You can see that the less
+			"sleep" I have at night, the more coffee I drink in the morning. The more coffee I drink in the morning, the less I "sleep"
+			the next night. It's a vicious circle.
+		</p>
+	</div>
+
+	<div>
+		<h3>dc.js Charts</h3>
+		<p>Click and drag the mouse to select a bar in a histogram. This will filter data by the number of hours of sleep, or numbers of cups of cofee, depending on the histogram</p>
+	</div>
 
 	<div id="sleepHistDiv">
     	<strong>Hours of Sleep Histrogram</strong>
@@ -52,20 +67,11 @@
 	
 	<table class="table table-hover dc-data-table">
 	</table>
-	
-	<div>
-		<p>
-			These charts show the number of hours I "sleep" at night, and the number of cups of coffee I drink the next morning. Hours
-			of "sleep", and cups of coffee are plotted on the y-axis, and the date is plotted on the x-axis. In the timeseries chart, the blue line represents
-			the hours of "sleep" and the red line represents the cups of coffee. You can see that the less "sleep" I have at night,
-			the more coffee I drink in the morning. The more coffee I drink in the morning, the less I "sleep" the next night. It's a
-			vicious circle.
-		</p>
-	</div>
 
 	<script src="crossfilter.js"></script>
 	<script src="d3.js"></script>
 	<script src="dc.js"></script>
 	<script src="graphs.js"></script>
+
 </body>
 </html>

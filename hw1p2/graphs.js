@@ -16,30 +16,38 @@
         
         if (err) throw err;
         
-        // convert date string to a date object
+        // Calculate means
+        sleepAvg = d3.mean(data, function (d) { return (d.sleep*1); });
+        coffeeAvg = d3.mean(data, function (d) { return +d.coffee; });
+
+        // Convert date string to a date object
         data.forEach(function (d) {
             d.sleep = +d.sleep;
             d.coffee = +d.coffee;
             d.date = new Date(d.date);
             d.day = days[d.date.getDay()];
+            d.sleepAvg = +sleepAvg;
+            d.coffeeAvg = +coffeeAvg;
         });
 
         var ndx = crossfilter(data); 
-        var all = ndx.groupAll();			
+        var all = ndx.groupAll();
 
+        var dayDim = ndx.dimension(function (d) { return d.day });
+        var dayDimGroup = dayDim.group();
+        dayDimGroup.top(Infinity).forEach(function (d, i) {
+            console.log(d.key + ': ' + d.value);
+        });
+
+        dayDim.filterExact("Sunday");
+        dayDim.top(Infinity).forEach(function(d, i) {
+            console.log(d.coffee + ": " + d.sleep);
+        });
+        dayDim.filterAll();
+
+        // Create dc.js charts here 
         var sleepDimension = ndx.dimension(function(d) {return +d.sleep;});
         var sleepGroup = sleepDimension.group();
-
-        var coffeeDimension = ndx.dimension(function(d) {return +d.coffee;});
-        var coffeeGroup = coffeeDimension.group();
-
-        var scatterDimension = ndx.dimension(function(d) {return [+d.coffee, +d.sleep];});
-        var scatterGroup = scatterDimension.group();
-
-        var daysDim = ndx.dimension(function (d) { return d.date; });
-        var daysCoffeeGroup = daysDim.group().reduceSum(function(d) {return +d.coffee;});
-        var daysSleepGroup = daysDim.group().reduceSum(function (d) { return +d.sleep; });
-
         sleepHist
             .dimension(sleepDimension)
             .group(sleepGroup)
@@ -47,6 +55,8 @@
             .elasticY(true)
             .xAxis().tickFormat();
         
+        var coffeeDimension = ndx.dimension(function (d) { return +d.coffee; });
+        var coffeeGroup = coffeeDimension.group();
         coffeeHist
             .dimension(coffeeDimension)
             .group(coffeeGroup)
@@ -54,7 +64,9 @@
             .elasticY(true)
             .ordinalColors(["red"])
             .xAxis().tickFormat();
-        
+
+        var scatterDimension = ndx.dimension(function (d) { return [+d.coffee, +d.sleep]; });
+        var scatterGroup = scatterDimension.group();
         coffeeSleepScatter
             .x(d3.scale.linear().domain([0, 10]))
             .y(d3.scale.linear().domain([0, 18]))
@@ -62,12 +74,15 @@
             .xAxisLabel("Cups of Coffee")
             .dimension(scatterDimension)
             .group(scatterGroup);
-
+        
+        var dateDim = ndx.dimension(function (d) { return d.date; });
+        var dateCoffeeGroup = dateDim.group().reduceSum(function (d) { return +d.coffee; });
+        var dateSleepGroup = dateDim.group().reduceSum(function (d) { return +d.sleep; });
         coffeeSleepTimeSeries
             .width(960)
             .transitionDuration(500)
             .mouseZoomable(false)
-            .dimension(daysDim)
+            .dimension(dateDim)
             .x(d3.time.scale().domain([new Date(2018, 01, 01), new Date(2018, 02, 28)]))
             .elasticY(true)
             .elasticX(true)
@@ -77,13 +92,13 @@
             .brushOn(false)
             .compose([
                 dc.lineChart(coffeeSleepTimeSeries)
-                    .group(daysSleepGroup, "Sleep Hours")
+                    .group(dateSleepGroup, "Sleep Hours")
                     .valueAccessor(function (d) { return d.value; }).title(function (d) {
                         return d.key + "\nSleep: " + d.value;
                     })
                     .dashStyle([2, 2]), 
                 dc.lineChart(coffeeSleepTimeSeries)						
-                    .group(daysCoffeeGroup, "Coffee Cups")
+                    .group(dateCoffeeGroup, "Coffee Cups")
                     .valueAccessor(function (d) { return d.value; }).title(function(d) {
                         return d.key + "\nCoffee: " + d.value;
                     })
@@ -97,7 +112,7 @@
             .dimension(ndx)
             .group(all);
         visTable
-            .dimension(daysDim)
+            .dimension(dateDim)
             .group(function (d) {
         var format = d3.format('02d');
         return d.day;
